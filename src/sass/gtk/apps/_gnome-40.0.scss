@@ -1,29 +1,28 @@
-
 //
 // Nautilus
 //
 
 $nautilus_header_image: image($header_bg);
 $nautilus_header_borders_image: image($header_border);
-$nautilus_borders_color: if($variant=='light', darken(rgba($dark_sidebar_bg, 1), 12%), $header_border);
+$nautilus_borders_color: if($variant=='light', gtkmix(black, $dark_sidebar_bg, 12%), $header_border);
 $flap_sidebar_size: 240px;
 
-@if $nautilus_style == 'stable' {
+@if $nautilus_style =='stable' {
   $nautilus_header_image: linear-gradient(90deg, transparent $flap_sidebar_size,
-                                                 $nautilus_borders_color $flap_sidebar_size,
-                                                 $nautilus_borders_color ($flap_sidebar_size + 1px),
-                                                 $base_color ($flap_sidebar_size + 1px));
+      $nautilus_borders_color $flap_sidebar_size,
+      $nautilus_borders_color ($flap_sidebar_size + 1px),
+      $base_color ($flap_sidebar_size + 1px));
 
   $nautilus_header_borders_image: linear-gradient(90deg, transparent $flap_sidebar_size,
-                                                         $header_border $flap_sidebar_size);
+      $header_border $flap_sidebar_size);
 }
 
-@if $nautilus_style == 'glassy' {
+@if $nautilus_style =='glassy' {
   $nautilus_header_image: linear-gradient(90deg, transparent ($flap_sidebar_size / 2),
-                                                 $dark_header_bg 40%);
+      if($trans =='true', gtkalpha($base_color, 0.96), $base_color) 40%);
 
-  $nautilus_header_borders_image: linear-gradient(90deg, rgba($header_border, 0) (($flap_sidebar_size / 2) - 40px),
-                                                         $header_border 40%);
+  $nautilus_header_borders_image: linear-gradient(90deg, gtkalpha($header_border, 0) (($flap_sidebar_size / 2) - 40px),
+      $header_border 40%);
 }
 
 %nautilus_view {
@@ -48,31 +47,37 @@ $flap_sidebar_size: 240px;
     color: $fg_color;
     background-color: $visit_color;
 
-    &:hover { background-color: $track_color; }
+    &:hover {
+      background-color: $track_color;
+    }
 
-    &:active { background-color: $active_color; }
+    &:active {
+      background-color: $active_color;
+    }
   }
 }
 
-.nautilus-window {
-  @if $nautilus_style == 'stable' or $nautilus_style == 'glassy' {
+.nautilus-window,
+#NautilusFileChooser,
+.nautilus-file-chooser {
+  @if $nautilus_style =='stable' or $nautilus_style =='glassy' {
     &.background.csd {
       &, &:backdrop {
         background-color: $dark_sidebar_bg;
       }
 
-      &:not(.view) headerbar {
-        &, &:backdrop {
-          background-color: transparent;
-          border: none;
-          background-image: $nautilus_header_image;
-          border-image: $nautilus_header_borders_image 0 0 1 / 0px 0px 1px stretch;
-        }
-      }
+      // &:not(.view) headerbar {
+      //   &, &:backdrop {
+      //     background-color: transparent;
+      //     border: none;
+      //     background-image: $nautilus_header_image;
+      //     border-image: $nautilus_header_borders_image 0 0 1 / 0px 0px 1px stretch;
+      //   }
+      // }
     }
   }
 
-  @if $nautilus_style == 'stable' {
+  @if $nautilus_style =='stable' {
     &:not(.view) headerbar {
       box.start > box {
         margin-left: 144px;
@@ -96,16 +101,18 @@ $flap_sidebar_size: 240px;
       .navigation-sidebar:not(.view) {
         > row {
           &:selected {
-            background-color: if($variant == 'light', rgba(black, 0.15), rgba(white, 0.15));
+            background-color: $sidebar_theme_color;
             color: $fg_color;
           }
 
           &.sidebar-row {
             .sidebar-icon {
-              @if $gnome_version == 'old' {
-                color: if($variant == 'light', $selected_bg_color, lighten($selected_bg_color, 20%));
-              } @else {
-                color: if($variant == 'light', $selected_bg_color, color-mix(in srgb, white 20%, $selected_bg_color));
+              @if $gnome_version =='old' {
+                color: if($variant =='light', $selected_bg_color, lighten($selected_bg_color, 20%));
+              }
+
+              @else {
+                color: if($variant =='light', $selected_bg_color, color-mix(in srgb, white 20%, $selected_bg_color));
               }
             }
           }
@@ -115,6 +122,27 @@ $flap_sidebar_size: 240px;
 
     > separator.horizontal {
       background-color: $header_border;
+    }
+  }
+
+  .content-pane toolbarview {
+
+    .top-bar,
+    .bottom-bar {
+      headerbar {
+        > windowhandle > box {
+          padding-top: 7px;
+          padding-bottom: 7px;
+        }
+      }
+    }
+
+    .bottom-bar {
+      &, &:backdrop {
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+      }
     }
   }
 
@@ -131,15 +159,17 @@ $flap_sidebar_size: 240px;
   }
 
   tabbar:not(.inline) {
+    margin: 0 -3px;
+
     .box {
-      @if $monterey == 'false' {
-        background-color: mix(black, $base_color, 6%);
+      @if $monterey =='false' {
+        background-color: gtkmix(black, $base_color, 6%);
         border-top: 1px solid $borders_color;
-      } @else {
-        background-color: $base_color;
       }
 
-      tabbox { margin: 0 -3px; }
+      @else {
+        background-color: $base_color;
+      }
     }
   }
 
@@ -147,7 +177,22 @@ $flap_sidebar_size: 240px;
     background-color: $base_color;
 
     child.activatable {
+      padding: 0;
       @extend %nautilus_view;
+
+      #NautilusViewCell, .nautilus-view-cell {
+        padding: 0;
+
+        .icon-ui-labels-box {
+          margin: 0 0 $base_padding * 2;
+          border-spacing: 0;
+        }
+
+        .dim-label {
+          color: $fg_color;
+          margin: $base_padding / 2 $base_padding / 2 0 0;
+        }
+      }
     }
   }
 
@@ -160,7 +205,7 @@ $flap_sidebar_size: 240px;
     listview.view {
       padding: 0;
       margin: 0;
-      border-spacing: 0;
+      border-spacing: $container_padding / 2;
 
       > row.activatable {
         padding: 0;
@@ -170,45 +215,46 @@ $flap_sidebar_size: 240px;
         > cell {
           padding: 0;
 
-          > widget#NautilusViewCell {
-            padding: $container_padding $container_padding * 1.5;
+          > widget#NautilusViewCell, > widget.nautilus-view-cell {
+            padding: $container_padding / 2 $container_padding * 1.5;
           }
         }
 
-        + row {
-          margin-top: $container_padding / 2;
+        &:nth-child(odd):not(:disabled) {
+          background-image: image(gtkalpha(currentColor, 0.03));
         }
       }
     }
   }
+}
 
-  // Floating Bar
-  .floating-bar {
-    padding: 2px;
-    background-color: $selected_bg_color;
-    color: $selected_fg_color;
-    border-radius: $wm_radius - $container_padding;
-    margin: $container_padding;
-    box-shadow: $shadow_5;
+// Floating Bar
+.floating-bar {
+  padding: 2px;
+  background-color: $selected_bg_color;
+  color: $selected_fg_color;
+  border-radius: $wm_radius - $container_padding;
+  margin: $container_padding;
+  box-shadow: $shadow_5;
 
-    > button.circular.flat {
-      border-radius: $circular_radius;
-      min-height: 24px;
-      min-width: 24px;
-      padding: 0;
-      @extend %selected-button;
-    }
+  > button.circular.flat {
+    border-radius: $circular_radius;
+    min-height: 24px;
+    min-width: 24px;
+    padding: 0;
+    @extend %selected-button;
   }
 }
 
-#NautilusViewCell {
+#NautilusViewCell, .nautilus-view-cell {
   clamp box {
     margin: 0;
     border-spacing: 0;
   }
 }
 
-#NautilusQueryEditor { // search entry
+#NautilusQueryEditor, .nautilus-query-editor {
+  // search entry
   padding: 2px $container_padding;
   border-spacing: 0;
 
@@ -216,7 +262,7 @@ $flap_sidebar_size: 240px;
     margin: 0;
   }
 
-  #NautilusQueryEditorTag {
+  #NautilusQueryEditorTag, .nautilus-query-editor-tag {
     @extend .entry-tag;
 
     > button {
@@ -228,17 +274,17 @@ $flap_sidebar_size: 240px;
     min-width: 16px;
     min-height: 16px;
     margin: 0;
-    -gtk-icon-size: 12px;
+    // -gtk-icon-size: 12px;
     padding: 0 4px;
   }
 }
 
-#NautilusPathBar {
+#NautilusPathBar, .nautilus-pathbar {
   background-color: $fill_color;
   border-radius: $bt_radius;
-  margin: 0 0 0 $container_padding;
+  margin: 0;
 
-  #NautilusPathButton {
+  #NautilusPathButton, .nautilus-path-button {
     margin: 0 $container_padding / 2;
     border-radius: $bt_radius;
 
@@ -251,12 +297,19 @@ $flap_sidebar_size: 240px;
       }
     }
 
-    &:first-child { margin-left: 0; }
+    &:first-child {
+      margin-left: 0;
+    }
   }
 
-  > menubutton {
-    margin-top: 0;
-    margin-bottom: 0;
+  > menubutton, > menubutton.flat.popup {
+    margin: 0;
+  }
+}
+
+#NautilusFileChooser, .nautilus-file-chooser {
+  multi-layout-view > box {
+    padding-left: $container_padding * 2;
   }
 }
 
@@ -266,10 +319,23 @@ navigation-view-page > toolbarview > scrolledwindow > viewport > clamp {
   }
 }
 
-// Extensions
-window.nightthemeswitcher headerbar {
-  background: $header_bg;
-  color: $header_fg;
+#sidebar_my_computer_wrapper {
+  padding: 0;
+}
+
+#place_my_computer {
+  margin-bottom: $container_padding / 2;
+}
+
+.mc-toggle-group {
+  padding: 2px;
+  border-radius: $bt_radius + 2px;
+
+  > button {
+    margin: 0;
+    min-height: 16px;
+    border-radius: $bt_radius;
+  }
 }
 
 //
@@ -277,8 +343,11 @@ window.nightthemeswitcher headerbar {
 //
 
 window.background.csd {
+
   > contents,
-  > widget { // 44.0
+  > widget {
+
+    // 44.0
     > leaflet.unfolded > box {
       > headerbar {
         @extend %side_headerbar_left;
@@ -295,7 +364,7 @@ window.background.csd {
 
       > scrolledwindow > viewport > widget > stack {
         > list.navigation-sidebar {
-          background-color: rgba($dark_sidebar_bg, 1);
+          background-color: $dark_sidebar_bg;
 
           > separator {
             background-color: transparent;
@@ -304,10 +373,14 @@ window.background.csd {
           }
         }
 
-        > box > list.navigation-sidebar { background-color: rgba($dark_sidebar_bg, 1); }
+        > box > list.navigation-sidebar {
+          background-color: $dark_sidebar_bg;
+        }
       }
 
-      > stack.background { background-color: $base_color; }
+      > stack.background {
+        background-color: $base_color;
+      }
     }
   }
 }
@@ -358,10 +431,14 @@ preferencesgroup > box {
     }
   }
 
-  .cutout-button { background-color: $dialog_bg_color; }
+  .cutout-button {
+    background-color: $dialog_bg_color;
+  }
 
-  @if $gnome_version == 'new' {
+  @if $gnome_version =='new' {
+    button.accent, // GDM Setting
     button.accent-button {
+      // Gnome Control Center
       min-height: 24px;
       min-width: 24px;
       padding: $base_padding / 2;
@@ -372,9 +449,13 @@ preferencesgroup > box {
       box-shadow: none;
       border: none;
 
-      &:hover { box-shadow: 0 0 0 3px $divider_color; }
+      &:hover {
+        box-shadow: 0 0 0 3px $divider_color;
+      }
 
-      &:checked { box-shadow: 0 0 0 3px var(--accent-bg-color); }
+      &:checked {
+        box-shadow: 0 0 0 3px var(--accent-bg-color);
+      }
 
       &.blue, &.teal, &.green, &.yellow, &.orange, &.red, &.pink, &.purple, &.slate {
         --accent-color: oklab(from var(--accent-bg-color) var(--standalone-color-oklab));
@@ -425,8 +506,11 @@ preferencesgroup > box {
 //
 
 window.background {
+
   > contents > toastoverlay > leaflet,
-  > widget > toastoverlay > leaflet { // 44.0
+  > widget > toastoverlay > leaflet {
+
+    // 44.0
     > box {
       background-color: $base_color;
 
@@ -461,6 +545,7 @@ window.background {
   }
 
   &.maximized, &.tiled {
+
     > contents > toastoverlay > leaflet,
     > widget > toastoverlay > leaflet {
       > box {
@@ -479,7 +564,7 @@ datechooser {
   .current-week {
     background-color: $fill_color;
   }
-  
+
   button.circular.day {
     border: none;
     box-shadow: none;
@@ -546,23 +631,65 @@ menubutton.flat.popup.sources-button {
 // Calculator
 //
 
-.history-view { background-color: $base_color; }
+.history-view {
+  background-color: $base_color;
+}
 
 .card {
-  &.display-container {
+  &.display-container, &.bit-panel {
     border: 1px solid $borders_color;
-
-    .small & {
-      border-radius: 0;
-
-      &.display-container {
-        border-width: 0 0 1px 0;
-      }
-    }
+    box-shadow: none;
+    background-color: $base_color;
   }
 
   #displayitem {
     border-top: 1px solid $borders_color;
+  }
+
+  &.bit-panel {
+    padding: $container_padding 0;
+
+    button, button.flat,
+    button.text-button {
+      min-width: 14px;
+      min-height: 12px;
+      padding: 0;
+    }
+  }
+}
+
+.small .card {
+  border-radius: 0;
+
+  &.display-container {
+    border-width: 0;
+  }
+
+  &.bit-panel {
+    border-width: 1px 0;
+  }
+
+  + widget > stack {
+    border-top: 1px solid $borders_color;
+  }
+}
+
+.math-buttons {
+  .buttons {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  button,
+  button.text-button,
+  menubutton > button,
+  menubutton > button.text-button {
+    min-width: 16px;
+    padding: 2px 4px;
+  }
+
+  button.number-button {
+    background-image: image($button_bg);
   }
 }
 
@@ -854,11 +981,12 @@ flowboxchild.card:not(.category-tile) {
   }
 
   &.category-work {
-    padding: 1px; /* FIXME: work around https://gitlab.gnome.org/GNOME/gtk/-/issues/4324 */
+    padding: 1px;
+    /* FIXME: work around https://gitlab.gnome.org/GNOME/gtk/-/issues/4324 */
     color: #1c71d8;
-    background-color:#fdf8d7;
+    background-color: #fdf8d7;
     background-image: linear-gradient($borders_color 1px, transparent 1px),
-             linear-gradient(90deg, $borders_color 1px, transparent 1px);
+      linear-gradient(90deg, $borders_color 1px, transparent 1px);
     background-size: 10px 10px, 10px 10px;
     background-position: -1px -4px, center -1px;
 
@@ -866,14 +994,14 @@ flowboxchild.card:not(.category-tile) {
       color: #1c71d8;
       background-color: lighten(#fdf8d7, 5%);
       background-image: linear-gradient($borders_color 1px, transparent 1px),
-               linear-gradient(90deg, $borders_color 1px, transparent 1px);
+        linear-gradient(90deg, $borders_color 1px, transparent 1px);
     }
 
     &:active {
       color: #1c71d8;
       background-color: darken(#fdf8d7, 5%);
       background-image: linear-gradient($borders_color 1px, transparent 1px),
-               linear-gradient(90deg, $borders_color 1px, transparent 1px);
+        linear-gradient(90deg, $borders_color 1px, transparent 1px);
     }
   }
 }
@@ -913,9 +1041,17 @@ clamp.large .category-tile:not(.category-tile-iconless) {
 }
 
 @keyframes install-progress-unknown-move {
-  0% { background-position: 0%; }
-  50% { background-position: 100%; }
-  100% { background-position: 0%; }
+  0% {
+    background-position: 0%;
+  }
+
+  50% {
+    background-position: 100%;
+  }
+
+  100% {
+    background-position: 0%;
+  }
 }
 
 .application-details-description .button {
@@ -931,13 +1067,17 @@ clamp.large .category-tile:not(.category-tile-iconless) {
   transition: none;
 }
 
-.install-progress:dir(rtl) { background-position: 100% bottom; }
+.install-progress:dir(rtl) {
+  background-position: 100% bottom;
+}
 
 .review-row > * {
   margin: $container_padding * 2;
 }
 
-.review-row button { font-size: smaller; }
+.review-row button {
+  font-size: smaller;
+}
 
 .review-row .vote-buttons button {
   margin-right: -1px;
@@ -1043,12 +1183,16 @@ scrolledwindow.list-page > viewport > clamp > box {
   margin-top: $container_padding * 3;
 }
 
-.section > label:not(:first-child) { margin-top: $container_padding; }
+.section > label:not(:first-child) {
+  margin-top: $container_padding;
+}
 
-.section > box:not(:first-child) { margin-top: $container_padding * 2; }
+.section > box:not(:first-child) {
+  margin-top: $container_padding * 2;
+}
 
 clamp.status-page {
-	margin: $container_padding * 6 $container_padding * 2;
+  margin: $container_padding * 6 $container_padding * 2;
 }
 
 clamp.status-page .iconbox {
@@ -1103,7 +1247,7 @@ app-context-bar {
 
   &.horizontal .context-tile,
   &.vertical box:first-child .context-tile {
-  	border-top: none;
+    border-top: none;
   }
 
   > box:not(:first-child) > button.flat {
@@ -1143,8 +1287,10 @@ carousel.card {
   &.large {
     font-size: 24px;
     padding: 16px;
-    min-width: 24px;  /* 60px minus the left and right padding */
-    min-height: 24px;  /* 60px minus the top and bottom padding */
+    min-width: 24px;
+    /* 60px minus the left and right padding */
+    min-height: 24px;
+    /* 60px minus the top and bottom padding */
   }
 
   &.wide-image image {
@@ -1152,7 +1298,9 @@ carousel.card {
     margin-bottom: -28px;
   }
 
-  image { -gtk-icon-style: symbolic; }
+  image {
+    -gtk-icon-style: symbolic;
+  }
 
   &.grey {
     color: $fg_color;
@@ -1161,28 +1309,28 @@ carousel.card {
 
   &.green, &.details-rating-0 {
     color: darken($theme_color_green, 15%);
-    background-color: rgba($theme_color_green, 0.15);
+    background-color: gtkalpha($theme_color_green, 0.15);
   }
 
   &.blue,
   &.details-rating-5 {
     color: $theme_color_blue;
-    background-color: rgba($theme_color_blue, 0.15);
+    background-color: gtkalpha($theme_color_blue, 0.15);
   }
 
   &.yellow, &.details-rating-12 {
     color: darken($theme_color_yellow, 15%);
-    background-color: rgba($theme_color_yellow, 0.15);
+    background-color: gtkalpha($theme_color_yellow, 0.15);
   }
 
   &.details-rating-15 {
     color: $theme_color_orange;
-    background-color: rgba($theme_color_orange, .15);
+    background-color: gtkalpha($theme_color_orange, .15);
   }
 
   &.red, &.details-rating-18 {
     color: darken($theme_color_red, 15%);
-    background-color: rgba($theme_color_red, 0.15);
+    background-color: gtkalpha($theme_color_red, 0.15);
   }
 }
 
@@ -1204,10 +1352,21 @@ window.narrow .app-developer {
   font-feature-settings: "tnum";
 }
 
-scrolledwindow.fake-adw-status-page > viewport > box { margin: $container_padding * 6 $container_padding * 2; }
-scrolledwindow.fake-adw-status-page > viewport > box > clamp:not(:last-child) > box { margin-bottom: $container_padding * 6; }
-scrolledwindow.fake-adw-status-page > viewport > box > clamp > box > .icon:not(:last-child) { margin-bottom: $container_padding * 6; }
-scrolledwindow.fake-adw-status-page > viewport > box > clamp > box > .title:not(:last-child) { margin-bottom: $container_padding * 2; }
+scrolledwindow.fake-adw-status-page > viewport > box {
+  margin: $container_padding * 6 $container_padding * 2;
+}
+
+scrolledwindow.fake-adw-status-page > viewport > box > clamp:not(:last-child) > box {
+  margin-bottom: $container_padding * 6;
+}
+
+scrolledwindow.fake-adw-status-page > viewport > box > clamp > box > .icon:not(:last-child) {
+  margin-bottom: $container_padding * 6;
+}
+
+scrolledwindow.fake-adw-status-page > viewport > box > clamp > box > .title:not(:last-child) {
+  margin-bottom: $container_padding * 2;
+}
 
 window.info scrollbar.vertical {
   margin-top: 48px;
@@ -1242,12 +1401,19 @@ row.app label.warning {
 
 // Ensure the spinner is hidden before the animation is triggered.
 @keyframes pre-delay {
-  from { opacity: 0; }
-  to { opacity: 0; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes fade-in {
-  from { filter: opacity(0%); }
+  from {
+    filter: opacity(0%);
+  }
 }
 
 /* Give a fade-in animation to spinners. */
@@ -1289,12 +1455,246 @@ window.background.csd {
 }
 
 //
+// Builder
+//
+
+popover.background.global-search {
+  > arrow, > contents {
+    padding: 0;
+  }
+}
+
+popover.background.pages-popover {
+  listview > row {
+    padding: $base_padding;
+
+    button {
+      margin: 0;
+    }
+
+    check {
+      margin: 4px 2px;
+      // -gtk-icon-size: 12px;
+    }
+  }
+}
+
+panelresizer .top-bar {
+  box-shadow: inset 0 -1px $borders_color;
+}
+
+.frameheader.header:not(.vertical) {
+  min-height: $menuitem_size;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid $borders_color;
+  background-color: gtkmix(black, $base_color, 6%);
+
+  &:backdrop {
+    background-color: gtkmix(black, $base_color, 7%);
+  }
+
+  tabbar {
+    .box {
+      min-height: $menuitem_size;
+      border: none;
+    }
+
+    .start-action, .end-action {
+      padding: $base_padding / 2;
+
+      button {
+        min-height: 20px;
+        min-width: 20px;
+        padding: $base_padding / 2;
+      }
+    }
+  }
+}
+
+panelframeswitcher:not(.vertical) {
+  &.frameheader.header {
+    padding: $container_padding / 2;
+  }
+
+  > button.toggle.image-button {
+    border: none;
+    margin: 0;
+  }
+}
+
+panelframeswitcher.frameheader.header.vertical {
+  > button.toggle.image-button {
+    min-height: 24px;
+    min-width: 24px;
+    padding: $base_padding;
+  }
+}
+
+panelstatusbar {
+  box-shadow: inset 0 1px $borders_color;
+
+  > menubutton > button,
+  > paneltogglebutton button {
+    border-radius: 0;
+    @extend %flat_button;
+  }
+}
+
+panelwidget entry.statusbar {
+  background-color: $bg_color;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+  border-top: 1px solid $borders_color;
+
+  &:focus-within {
+    outline: none;
+  }
+}
+
+.IdeTweaksWindow,
+.org-gnome-Builder {
+  .boxed-list {
+    box-shadow: inset 0 0 0 1px gtkalpha(currentColor, 0.08);
+  }
+}
+
+// Setting window
+.style-variant {
+  padding: 0 $base_padding * 2;
+
+  button.toggle {
+    padding: 0;
+
+    &, &:hover, &:focus, &:active, &:checked {
+      background: none;
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    > stylevariantpreview > .wallpaper {
+      border-radius: $bt_radius;
+      outline-color: transparent;
+      outline-width: 3px;
+      outline-offset: $base_padding / 2;
+      outline-style: solid;
+      box-shadow: none;
+    }
+
+    &:hover > stylevariantpreview > .wallpaper {
+      outline-color: gtkalpha(currentColor, 0.05);
+    }
+
+    &:active > stylevariantpreview > .wallpaper {
+      outline-color: gtkalpha(currentColor, 0.15);
+    }
+
+    &:checked > stylevariantpreview > .wallpaper {
+      outline-color: $primary_color;
+    }
+  }
+}
+
+//
+// Gnome extensions tool
+//
+
+popover.details-popover {
+  .actions {
+    border-spacing: 6px;
+
+    > button {
+      padding: 8px;
+    }
+  }
+}
+
+//
 // Ptyxis
 //
 
 .ptyxis-window {
   vte-terminal {
     background: none;
+  }
+
+  toolbarview {
+    headerbar > windowhandle > box,
+    > .top-bar .collapse-spacing headerbar > windowhandle > box,
+    > .bottom-bar .collapse-spacing headerbar > windowhandle > box {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  headerbar {
+    splitbutton.horizontal.image-button,
+    button.image-button.toggle {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    
+    splitbutton.horizontal.image-button > button.image-button {
+      border-top-right-radius: $bt_radius;
+      border-bottom-right-radius: $bt_radius;
+    }
+  }
+  
+  box.visual-bell-area {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+//
+// Hosty
+//
+
+.hosty-window {
+  toolbarview headerbar {
+    min-height: 0;
+
+    > windowhandle > box {
+      padding-top: 0;
+      padding-bottom: 0;
+
+      viewswitcher.wide {
+        min-height: 0;
+        margin-top: 8px;
+        margin-bottom: 8px;
+      }
+    }
+  }
+
+  headerbar {
+    button,
+    splitbutton.horizontal.image-button,
+    button.image-button.toggle {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    windowtitle {
+      .title,
+      .subtitle {
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+    }
+  }
+}
+
+//
+// Bazaar
+//
+
+.app-context-bar {
+  .lozenge,
+  .grey.lozenge {
+    background: none;
+    background-image: none;
   }
 }
 
@@ -1308,6 +1708,15 @@ window.background.csd {
 }
 
 //
+// Other Extensions
+//
+
+window.nightthemeswitcher headerbar {
+  background: $header_bg;
+  color: $header_fg;
+}
+
+//
 // Pamac manager
 //
 
@@ -1318,5 +1727,182 @@ dialog-host > widget > widget > toolbarview {
     + toastoverlay > stack {
       border-top: 1px solid $header_border;
     }
+  }
+}
+
+//
+// Chrome
+//
+
+$chrome_bg_color: if($variant =='light', #f5f5f5, if($darker =='true', #1f1f1f, #242424));
+$chrome_fg_color: if($variant =='light', #2e2e2e, #e0e0e0);
+
+@if $scheme =='nord' {
+  $chrome_bg_color: if($variant =='light', #f3f4f6, if($darker =='true', #1d2025, #252932));
+  $chrome_fg_color: if($variant =='light', #3b4252, #e5e9f0);
+}
+
+$title_style: 'macos'; // 'normal' or 'macos'
+
+%normal_title_buttons {
+  min-width: 22px;
+  min-height: 22px;
+  margin: 0 3px;
+  padding: 0;
+  color: currentColor;
+  border: none;
+  border-radius: $circular_radius;
+  background-image: none;
+  background-color: gtkalpha(currentColor, 0.12);
+
+  &:hover {
+    background-color: gtkalpha(currentColor, 0.2);
+    transition-duration: $shorter_duration;
+  }
+
+  &:active {
+    background-color: gtkalpha(currentColor, 0.3);
+    transition-duration: $shorter_duration;
+  }
+}
+
+%macos_title_buttons {
+  min-width: 16px;
+  min-height: 16px;
+  margin: 0 3px;
+  padding: 0;
+  border-radius: $circular_radius;
+  border: none;
+
+  @if $variant =='light' {
+    box-shadow: inset 0 0 0 1px rgba(black, 0.2);
+  }
+
+  &.close {
+    background-color: $wm_button_close_bg;
+    color: $wm_button_close_bg;
+
+    &:hover {
+      background-color: $wm_button_close_hover_bg;
+      color: gtkmix(black, $wm_button_close_hover_bg, 50%);
+    }
+
+    &:active {
+      background-color: $wm_button_close_active_bg;
+      color: gtkmix(black, $wm_button_close_active_bg, 50%);
+    }
+  }
+
+  &.minimize {
+    background-color: $wm_button_minimize_bg;
+    color: $wm_button_minimize_bg;
+
+    &:hover {
+      background-color: $wm_button_minimize_hover_bg;
+      color: gtkmix(black, $wm_button_minimize_hover_bg, 50%);
+    }
+
+    &:active {
+      background-color: $wm_button_minimize_active_bg;
+      color: gtkmix(black, $wm_button_minimize_active_bg, 50%);
+    }
+  }
+
+  &.maximize {
+    background-color: $wm_button_maximize_bg;
+    color: $wm_button_maximize_bg;
+
+    &:hover {
+      background-color: $wm_button_maximize_hover_bg;
+      color: gtkmix(black, $wm_button_maximize_hover_bg, 50%);
+    }
+
+    &:active {
+      background-color: $wm_button_maximize_active_bg;
+      color: gtkmix(black, $wm_button_maximize_active_bg, 50%);
+    }
+  }
+}
+
+window.background.chromium {
+  background-color: $chrome_bg_color;
+  color: $chrome_fg_color;
+  box-shadow: 0 12px 20px rgba(black, 0.35), 0 0 0 1px rgba(black, 0.75);
+  border-color: $borders_color;
+
+  &:backdrop {
+    background-color: gtkmix($chrome_fg_color, $chrome_bg_color, 10%);
+    color: rgba($chrome_fg_color, 0.5);
+    transition: $shadow_transition;
+    box-shadow: 0 7px 12px rgba(black, 0.15), 0 0 0 1px rgba(black, 0.65);
+  }
+
+  headerbar.header-bar.titlebar {
+    padding: 0 $container_padding * 2;
+    background-color: gtkmix($chrome_fg_color, $chrome_bg_color, 6%);
+    color: $chrome_fg_color;
+    box-shadow: inset 0 1px rgba(white, 0.1);
+    border-radius: $wm_radius $wm_radius 0 0;
+
+    &:backdrop {
+      background-color: gtkmix($chrome_fg_color, $chrome_bg_color, 6%);
+      color: rgba($chrome_fg_color, 0.5);
+    }
+
+    button.titlebutton {
+      color: transparent;
+
+      &.minimize {
+        color: $wm_button_minimize_bg;
+
+        &:hover, &:active {
+          color: gtkmix(black, $wm_button_minimize_active_bg, 50%);
+        }
+
+        &:backdrop, &:disabled {
+          color: $wm_button_inactive_bg;
+
+          &:hover, &:active {
+            color: gtkmix(black, $wm_button_inactive_bg, 50%);
+          }
+        }
+      }
+
+      // @if $title_style =='normal' {
+      //   @extend %normal_title_buttons;
+      // }
+
+      // @else {
+      //   @extend %macos_title_buttons;
+      // }
+    }
+  }
+
+  // internal region of toolbar's entry widget
+  > textview.view, textview {
+    background-color: gtkmix($chrome_fg_color, $chrome_bg_color, 10%);
+    color: $chrome_fg_color;
+  }
+}
+
+//
+// Rnote
+//
+
+.colorpad {
+  background-color: gtkcolor(colorpad_color);
+  color: gtkcolor(colorpad_fg_color);
+}
+
+.colorsetter {
+  &, &:hover, &:focus, &:active {
+    background-color: gtkcolor(colorsetter_color);
+    color: gtkcolor(colorsetter_fg_color);
+  }
+
+  &:checked {
+    background-color: gtkcolor(colorsetter_color);
+    color: gtkcolor(colorsetter_fg_color);
+    box-shadow: inset 0 -3px gtkcolor(colorsetter_fg_color);
   }
 }

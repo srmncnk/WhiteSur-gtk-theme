@@ -1,6 +1,6 @@
-VERSION: (GNOME-SHELL) 47.0
+VERSION: (GNOME-SHELL) 48.0
 
-RELEASE TIME: 2024年 10月 30日 星期三 21:08:48 CST
+RELEASE TIME: 2025年 12月 27日 星期六 11:07:03 CST
 
 --->>> GTK | GNOME Shell | Cinnamon | Metacity | XFWM | Plank <<<---
 Color variants   : Dark;Light

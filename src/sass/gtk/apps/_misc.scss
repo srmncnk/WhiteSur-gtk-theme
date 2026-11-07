@@ -195,7 +195,7 @@ $chrome_menu_fg_color: $fg_color;
 
 window.background.chromium {
   // checked-tab & toolbar & button widgets
-  background-color: $bg_color;
+  background-color: $chrome_bg_color;
   color: $text_color;
 
   headerbar.titlebar {
@@ -216,7 +216,7 @@ window.background.chromium {
       min-width: 16px;
       min-height: 16px;
       margin: 0; // unset margins
-      padding: 0 0;
+      padding: 0;
       background-size: 16px 16px;
       color: transparent; // hide stock icons
       border: none;
@@ -264,6 +264,7 @@ window.background.chromium {
 //
 // Libre-Office
 //
+
 window.background:not(.solid-csd):not(.csd) {
   // reserved area at the most-right side of GtkMenuBar
   > grid.horizontal > grid.horizontal {
@@ -291,33 +292,6 @@ window.background:not(.solid-csd):not(.csd) {
       &:disabled {
         color: rgba($header_fg, 0.6);
       }
-    }
-  }
-
-  > grid.horizontal > widget > widget {
-    viewport.frame > box > box > box > grid toolbar {
-      background: none;
-      border: none;
-      padding: 3px;
-    }
-
-    > scrolledwindow > viewport.frame {
-      background: $base_color;
-
-      > grid > box.vertical {
-        > toolbar {
-          background: none;
-          border: none;
-          padding: 6px;
-        }
-      }
-
-      > grid > box.horizontal > #combobox.linked,
-      > grid > box.horizontal > grid.horizontal > box.horizontal { background: $base_color; }
-    }
-
-    toolbar.small-button {
-      border: none;
     }
   }
 
@@ -366,6 +340,33 @@ window.background:not(.solid-csd):not(.csd) {
   }
 }
 
+window.background:not(.solid-csd) {
+  > grid.horizontal > widget > widget {
+    viewport.frame > box > box > box > grid toolbar {
+      background-color: transparent;
+      border: none;
+      padding: 3px;
+    }
+
+    > scrolledwindow > viewport.frame {
+      > grid > box.vertical {
+        > toolbar {
+          background-color: transparent;
+          border: none;
+          padding: 6px;
+        }
+      }
+
+      > grid > box.horizontal > #combobox.linked,
+      > grid > box.horizontal > grid.horizontal > box.horizontal { background-color: $base_color; }
+    }
+
+    toolbar.small-button {
+      border: none;
+    }
+  }
+}
+
 #combobox.linked {
   > entry.combo {
     border: 1px solid $dark_borders_color;
@@ -402,6 +403,14 @@ toolbar.toolbar {
       color: $fg_color;
       background-color: if($variant == 'light', mix(black, $bg_color, 5%), mix(white, $bg_color, 5%));
       border-color: transparent;
+    }
+
+    &:disabled {
+      color: $disabled_fg_color;
+
+      label {
+        color: $disabled_fg_color;
+      }
     }
   }
 }
@@ -687,6 +696,32 @@ treeview#ObjectsTreeView.view {
 }
 
 //
+// GIMP
+//
+
+GimpSpinScale {
+  > entry {
+  }
+
+  > button {
+    @extend %flat_button;
+    margin-left: $container_padding / 2;
+  }
+}
+
+GimpDock {
+  combobox {
+    button.combo arrow {
+      margin: 2px 0;
+    }
+  }
+
+  spinbutton {
+    > entry { border-radius: $bt_radius 0 0 $bt_radius; } // Not Work
+  }
+}
+
+//
 // Synaptic
 //
 window > box.vertical > box.horizontal {
@@ -775,11 +810,6 @@ menubar.-vala-panel-background {
 
   > menu {
     padding: $container_padding;
-
-    separator {
-      margin: 0;
-      border-bottom: none;
-    }
 
     > menuitem {
       border-radius: $bt_radius;

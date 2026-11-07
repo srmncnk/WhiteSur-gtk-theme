@@ -51,7 +51,7 @@ usage() {
   helpify "--darker, --darkercolor"       ""                                                  "  Install darker '${THEME_NAME}' dark themes"      ""
   helpify "--dialog, --interactive"       ""                                                  "  Run this installer interactively, with dialogs"  ""
   helpify "--silent-mode"                 ""                                                  "  Meant for developers: ignore any confirm prompt and params become more strict" ""
-  helpify "-r, --remove, -u, --uninstall" ""                                                  "  Remove all installed ${THEME_NAME} themes"       ""
+  helpify "-r, --remove, -u, --uninstall" "[theme|app]"                                       "  Remove all installed ${THEME_NAME} themes"       ""
   helpify "-h, --help"                    ""                                                  "  Show this help"                                  ""
 }
 
@@ -133,7 +133,16 @@ while [[ $# -gt 0 ]]; do
     -f|--fixed)
       accent_type="fixed"; shift ;;
     -r|--remove|-u|-uninstall)
-      uninstall='true'; shift ;;
+      uninstall='true'; shift
+      for type in "${@}"; do
+      case "${type}" in
+        theme)
+          remove_theme="true"; shift ;;
+        app)
+          remove_app="true"; shift ;;
+      esac
+      done
+      ;;
     --silent-mode)
       full_sudo "${1}"; silent_mode='true'; shift ;;
     --dialog|--interactive)
@@ -165,21 +174,19 @@ if [[ "${uninstall}" == 'true' ]]; then
     prompt -s "Done! All '${name}' gtk themes have been removed."
   fi
 
+  if [[ "${remove_app}" == 'true' ]]; then
+    prompt -i "\n  Uninstall 'gnome-theme-switcher' app..."
+    rm -rf "${BIN_DIR}/gnome-theme-switcher"
+    rm -rf "${APP_DIR}/org.gnome.GTK4ThemeSwitcher.desktop"
+  fi
+
   if [[ -f "${MISC_GR_FILE}.bak" ]]; then
     prompt -e "Find installed GDM theme, you need to run: 'sudo ./tweaks.sh -g -r' to remove it!"
   fi
 else
-  if [[ "${interactive}" == 'true' ]]; then
-    show_panel_opacity_dialog
-#    show_sidebar_size_dialog
-    show_nautilus_style_dialog
-#  else
-#    show_needed_dialogs
-  fi
+  #prompt -w "Removing the old '${name}' themes...\n"
 
-  prompt -w "Removing the old '${name}' themes...\n"
-
-  remove_themes; customize_theme; avoid_variant_duplicates;
+  clean_themes; customize_theme; avoid_variant_duplicates;
 
   prompt -w "Installing '${name}' themes in '${dest}'...\n";
 
@@ -192,16 +199,22 @@ else
   prompt -i "Start icon style : ${icon}"
   prompt -i "Nautilus style   : ${nautilus_style}"
 
-  echo; install_themes; echo; prompt -s "Done!"
+  if has_command gnome-shell; then
+    prompt -i "Desktop          : $(gnome-shell --version)"
+  fi
+
+  install_app
 
   if [[ "${libadwaita}" == 'true' ]]; then
     if [[ "$UID" != '0' ]]; then
       install_libadwaita
-      echo; prompt -w "Some colorsheme extension will re-writes config files in '${HOME}/.config/gtk-4.0' like: 'custom-accent-colors' you need disable it!"
+      echo; prompt -w "Some colorsheme extension will re-writes config files in '${HOME}/.config/gtk-4.0' like: 'custom-accent-colors' you need to disable it!"
     else
       echo; prompt -e "Do not run '--libadwaita' option with sudo!"
     fi
   fi
+
+  echo; install_themes; echo; prompt -s "Done!"
 
   if (is_my_distro "solus") && (is_running "gnome-session"); then
     msg="GNOME: you may need to disable 'User Themes' extension to fix your dock."

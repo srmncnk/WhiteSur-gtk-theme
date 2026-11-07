@@ -5,7 +5,7 @@ $popover_bubble_bg: if($variant == 'light', rgba(white, 0.95), rgba(lighten($bas
 %popover_bubble {
   color: $alt_fg_color;
   background-color: $popover_bubble_bg;
-  border-radius: $base_border_radius !important;
+  border-radius: $bt_radius + $base_padding * 1.5 !important;
   border: none;
   box-shadow: 0 1px 2px rgba(black, 0.02) !important;
   text-shadow: none;
@@ -29,7 +29,7 @@ $popover_bubble_bg: if($variant == 'light', rgba(white, 0.95), rgba(lighten($bas
 }
 
 .datemenu-popover {
-  border-radius: $base_border_radius + $base_padding * 2.5 !important;
+  border-radius: $bt_radius + $base_padding * 4 !important;
 }
 
 // Calendar menu side column
@@ -199,7 +199,7 @@ $popover_bubble_bg: if($variant == 'light', rgba(white, 0.95), rgba(lighten($bas
     }
 
     &:active {
-      @if $gnome_version == 'old' {
+      @if $shell_version == 'old' {
         background-color: darken($primary_color, 5%);
       } @else {
         background-color: st-darken($primary_color, 5%);
@@ -215,7 +215,7 @@ $popover_bubble_bg: if($variant == 'light', rgba(white, 0.95), rgba(lighten($bas
 
       &:hover, &:focus {
         color: $light_fg_color !important;
-        @if $gnome_version == 'old' {
+        @if $shell_version == 'old' {
           background-color: lighten($primary_color, 8%);
         } @else {
           background-color: st-lighten($primary_color, 8%);

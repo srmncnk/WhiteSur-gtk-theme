@@ -77,7 +77,11 @@ prepare_deps() {
     prompt -w "DEPS: Your system clock is wrong"
     prompt -i "DEPS: Updating your system clock..."
     # Add "+ 25" here to accomodate potential time delay by sudo prompt
-    sudo date -s "@$((remote_time + 25))"; sudo hwclock --systohc
+    sudo date -s "@$((remote_time + 25))"
+
+    if has_command hwclock; then
+      sudo hwclock --systohc
+    fi
   fi
 }
 
@@ -230,7 +234,7 @@ install_theme_deps() {
 }
 
 install_beggy_deps() {
-  if ! has_command convert; then
+  if ! has_command magick; then
     prompt -w "DEPS: 'imagemagick' is required for background editing."
     prepare_deps; stop_animation
 
@@ -318,29 +322,44 @@ install_flatpak_deps() {
 
 install_beggy() {
   local CONVERT_OPT=""
+  local BLUR_INFO="Not Blur"
+  local DARK_INFO="Not Darken"
 
-  [[ "${no_blur}" == "false" ]] && CONVERT_OPT+=" -scale 1280x -blur 0x50 "
-  [[ "${no_darken}" == "false" ]] && CONVERT_OPT+=" -fill black -colorize 45% "
+  if [[ "${no_blur}" == "false" ]]; then
+    CONVERT_OPT+=" -scale 1280x -blur 0x50 "
+    BLUR_INFO="Blur"
+  fi
+
+  if [[ "${no_darken}" == "false" ]]; then
+    CONVERT_OPT+=" -fill black -colorize 45% "
+    DARK_INFO="Darken"
+  fi
 
   case "${background}" in
     blank)
       cp -r "${THEME_SRC_DIR}/assets/gnome-shell/backgrounds/background-blank.png"            "${WHITESUR_TMP_DIR}/beggy.png" ;;
     default)
       if [[ "${no_blur}" == "false" && "${no_darken}" == "true" ]]; then
+        prompt -i "Installed $BLUR_INFO but $DARK_INFO background! \n"
         cp -r "${THEME_SRC_DIR}/assets/gnome-shell/backgrounds/background-blur.png"           "${WHITESUR_TMP_DIR}/beggy.png"
       elif [[ "${no_blur}" == "false" && "${no_darken}" == "false" ]]; then
+        prompt -i "Installed $BLUR_INFO and $DARK_INFO background! \n"
         cp -r "${THEME_SRC_DIR}/assets/gnome-shell/backgrounds/background-blur-darken.png"    "${WHITESUR_TMP_DIR}/beggy.png"
       elif [[ "${no_blur}" == "true" && "${no_darken}" == "true" ]]; then
+        prompt -i "Installed $BLUR_INFO and $DARK_INFO background! \n"
         cp -r "${THEME_SRC_DIR}/assets/gnome-shell/backgrounds/background-default.png"        "${WHITESUR_TMP_DIR}/beggy.png"
       else
+        prompt -i "Installed $BLUR_INFO but $DARK_INFO background! \n"
         cp -r "${THEME_SRC_DIR}/assets/gnome-shell/backgrounds/background-darken.png"         "${WHITESUR_TMP_DIR}/beggy.png"
       fi
       ;;
     *)
-      if [[ "${no_blur}" == "false" || "${darken}" == "true" ]]; then
+      if [[ "${no_blur}" == "false" || "${no_darken}" == "false" ]]; then
         install_beggy_deps
+        prompt -i "Installed Custome $BLUR_INFO $DARK_INFO ${background} picture for background! \n"
         convert "${background}" ${CONVERT_OPT}                                                "${WHITESUR_TMP_DIR}/beggy.png"
       else
+        prompt -i "Installed Custome ${background} picture for background! \n"
         cp -r "${background}"                                                                 "${WHITESUR_TMP_DIR}/beggy.png"
       fi
       ;;
@@ -423,35 +442,31 @@ install_theemy() {
 
   #--------------------GTK-3.0--------------------#
 
-  mkdir -p                                                                                    "${TMP_DIR_T}"
-  cp -r "${THEME_SRC_DIR}/assets/gtk/common-assets/assets"                                    "${TMP_DIR_T}"
-  cp -r "${THEME_SRC_DIR}/assets/gtk/common-assets/sidebar-assets/"*".png"                    "${TMP_DIR_T}/assets"
-  cp -r "${THEME_SRC_DIR}/assets/gtk/scalable"                                                "${TMP_DIR_T}/assets"
-  cp -r "${THEME_SRC_DIR}/assets/gtk/windows-assets/titlebutton${alt}${scheme}"               "${TMP_DIR_T}/windows-assets"
+  mkdir -p                                                                                    "${TARGET_DIR}/gtk-3.0"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/common-assets/assets"                                    "${TARGET_DIR}/gtk-3.0"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/common-assets/sidebar-assets/"*".png"                    "${TARGET_DIR}/gtk-3.0/assets"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/scalable"                                                "${TARGET_DIR}/gtk-3.0/assets"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/windows-assets/titlebutton${alt}${scheme}"               "${TARGET_DIR}/gtk-3.0/windows-assets"
 
-  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-3.0/gtk${color}.scss"                         "${TMP_DIR_T}/gtk.css"
-  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-3.0/gtk-Dark.scss"                            "${TMP_DIR_T}/gtk-dark.css"
+  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-3.0/gtk${color}.scss"                         "${TARGET_DIR}/gtk-3.0/gtk.css"
+  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-3.0/gtk-Dark.scss"                            "${TARGET_DIR}/gtk-3.0/gtk-dark.css"
 
   mkdir -p                                                                                    "${TARGET_DIR}/gtk-3.0"
   cp -r "${THEME_SRC_DIR}/assets/gtk/thumbnails/thumbnail${color}${theme}${scheme}.png"       "${TARGET_DIR}/gtk-3.0/thumbnail.png"
-  echo '@import url("resource:///org/gnome/theme/gtk.css");' >                                "${TARGET_DIR}/gtk-3.0/gtk.css"
-  echo '@import url("resource:///org/gnome/theme/gtk-dark.css");' >                           "${TARGET_DIR}/gtk-3.0/gtk-dark.css"
-  glib-compile-resources --sourcedir="${TMP_DIR_T}" --target="${TARGET_DIR}/gtk-3.0/gtk.gresource" "${THEME_SRC_DIR}/main/gtk-3.0/gtk.gresource.xml"
 
   #--------------------GTK-4.0--------------------#
 
-  mkdir -p                                                                                    "${TMP_DIR_F}"
-  cp -r "${TMP_DIR_T}/assets"                                                                 "${TMP_DIR_F}"
-  cp -r "${TMP_DIR_T}/windows-assets"                                                         "${TMP_DIR_F}"
+  mkdir -p                                                                                    "${TARGET_DIR}/gtk-4.0"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/common-assets/assets"                                    "${TARGET_DIR}/gtk-4.0"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/common-assets/sidebar-assets/"*".png"                    "${TARGET_DIR}/gtk-4.0/assets"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/scalable"                                                "${TARGET_DIR}/gtk-4.0/assets"
+  cp -r "${THEME_SRC_DIR}/assets/gtk/windows-assets/titlebutton${alt}${scheme}"               "${TARGET_DIR}/gtk-4.0/windows-assets"
 
-  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-4.0/gtk${color}.scss"                         "${TMP_DIR_F}/gtk.css"
-  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-4.0/gtk-Dark.scss"                            "${TMP_DIR_F}/gtk-dark.css"
+  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-4.0/gtk${color}.scss"                         "${TARGET_DIR}/gtk-4.0/gtk.css"
+  sassc ${SASSC_OPT} "${THEME_SRC_DIR}/main/gtk-4.0/gtk-Dark.scss"                            "${TARGET_DIR}/gtk-4.0/gtk-dark.css"
 
   mkdir -p                                                                                    "${TARGET_DIR}/gtk-4.0"
   cp -r "${THEME_SRC_DIR}/assets/gtk/thumbnails/thumbnail${color}${theme}${scheme}.png"       "${TARGET_DIR}/gtk-4.0/thumbnail.png"
-  echo '@import url("resource:///org/gnome/theme/gtk.css");' >                                "${TARGET_DIR}/gtk-4.0/gtk.css"
-  echo '@import url("resource:///org/gnome/theme/gtk-dark.css");' >                           "${TARGET_DIR}/gtk-4.0/gtk-dark.css"
-  glib-compile-resources --sourcedir="${TMP_DIR_F}" --target="${TARGET_DIR}/gtk-4.0/gtk.gresource" "${THEME_SRC_DIR}/main/gtk-4.0/gtk.gresource.xml"
 
   #----------------Cinnamon-----------------#
 
@@ -493,8 +508,12 @@ install_theemy() {
   cp -r "${THEME_SRC_DIR}/assets/metacity-1/thumbnail${color}${scheme}.png"                   "${TARGET_DIR}/metacity-1/thumbnail.png"
   ( cd "${TARGET_DIR}/metacity-1" && ln -s "metacity-theme-1.xml" "metacity-theme-2.xml" )
 
+  mkdir -p                                                                                    "${TARGET_DIR}/labwc"
+  cp -r "${THEME_SRC_DIR}/assets/labwc/assets${color}${scheme}/"*".svg"                       "${TARGET_DIR}/labwc"
+  cp -r "${THEME_SRC_DIR}/main/labwc/themerc${color}${scheme}"                                "${TARGET_DIR}/labwc/themerc"
+
   mkdir -p                                                                                    "${TARGET_DIR}/plank"
-  cp -r "${THEME_SRC_DIR}/other/plank/theme${color}/"*".theme"                                "${TARGET_DIR}/plank"
+  cp -r "${REPO_DIR}/other/plank/theme${color}/"*".theme"                                     "${TARGET_DIR}/plank"
 
   cp -r "${THEME_SRC_DIR}/assets/unity"                                                       "${TARGET_DIR}"
 }
@@ -536,8 +555,13 @@ config_gtk4() {
 install_libadwaita() {
   color="${colors[0]}"
   opacity="${opacities[0]}"
+  alt="${alts[0]}"
+  theme="${themes[0]}"
+  scheme="${schemes[0]}"
 
-  gtk_base && config_gtk4 "${color}" "${opacity}" "${alt}" "${theme}" "${scheme}"
+  install_theme_deps
+
+  libadwaita_base && config_gtk4 "${color}" "${opacity}" "${alt}" "${theme}" "${scheme}"
 }
 
 remove_libadwaita() {
@@ -545,16 +569,32 @@ remove_libadwaita() {
   rm -rf "${HOME}/.config/gtk-4.0/"{gtk.css,gtk-dark.css,gtk-Light.css,gtk-Dark.css,assets,windows-assets}
 }
 
+#############################
+# gnome-theme-switcher #
+############################
+
+install_app() {
+  prompt -w "\n  Installing 'gnome-theme-switcher' app...\n";
+
+  [[ -f "${BIN_DIR}/gnome-theme-switcher" ]] && rm -rf "${BIN_DIR}/gnome-theme-switcher"
+  [[ -f "${APP_DIR}/org.gnome.GTK4ThemeSwitcher.desktop" ]] && rm -rf "${APP_DIR}/org.gnome.GTK4ThemeSwitcher.desktop"
+
+  mkdir -p "${BIN_DIR}"
+  cp -r "${REPO_DIR}/other/gnome-theme-switcher/gnome-theme-switcher" "${BIN_DIR}"
+  mkdir -p "${APP_DIR}"
+  cp -r "${REPO_DIR}/other/gnome-theme-switcher/org.gnome.GTK4ThemeSwitcher.desktop" "${APP_DIR}"
+}
+
 ###############################################################################
 #                                   THEMES                                    #
 ###############################################################################
 
 fix_whiskermenu() {
-  if (command -v xfce4-popup-whiskermenu &> /dev/null) && $(sed -i "s|.*menu-opacity=.*|menu-opacity=95|" "$HOME/.config/xfce4/panel/whiskermenu"*".rc" &> /dev/null); then
+  if has_command xfce4-popup-whiskermenu && $(sed -i "s|.*menu-opacity=.*|menu-opacity=95|" "$HOME/.config/xfce4/panel/whiskermenu"*".rc" &> /dev/null); then
     sed -i "s|.*menu-opacity=.*|menu-opacity=95|" "$HOME/.config/xfce4/panel/whiskermenu"*".rc"
   fi
 
-  if pgrep xfce4-session &> /dev/null && [ "$(id -u)" -ne 0 ]; then
+  if pgrep xfce4-session &> /dev/null && [ "$(id -u)" -ne 0 ] && has_command xfce4-popup-whiskermenu; then
     xfce4-panel -r
   fi
 }
@@ -583,6 +623,20 @@ install_themes() {
   stop_animation; fix_whiskermenu
 }
 
+clean_themes() {
+  for color in "${colors[@]}"; do
+    for opacity in "${opacities[@]}"; do
+      for alt in "${alts[@]}"; do
+        for theme in "${themes[@]}"; do
+          for scheme in "${schemes[@]}"; do
+            remove_packy "${color}" "${opacity}" "${alt}" "${theme}" "${scheme}"
+          done
+        done
+      done
+    done
+  done
+}
+
 remove_themes() {
   process_ids=()
 
@@ -606,12 +660,13 @@ install_gdm_theme() {
   local TARGET=
 
   # Let's go!
-  install_theme_deps
-  rm -rf "${WHITESUR_GS_DIR}"; install_beggy
-  gtk_base && shell_base
+  install_theme_deps; install_beggy
+
+  gtk_base && shell_base "${colors[1]}" "${opacities[0]}" "${alts[0]}" "${themes[0]}" "${schemes[0]}"
 
   if check_theme_file "${COMMON_CSS_FILE}"; then # CSS-based theme
-    install_shelly "${colors[0]}" "${opacities[0]}" "${alts[0]}" "${themes[0]}" "${schemes[0]}" "${icon}" "${WHITESUR_GS_DIR}"
+    rm -rf "${WHITESUR_GS_DIR}"
+    install_shelly "${colors[1]}" "${opacities[0]}" "${alts[0]}" "${themes[0]}" "${schemes[0]}" "${icon}" "${WHITESUR_GS_DIR}"
     sed $SED_OPT "s|assets|${WHITESUR_GS_DIR}/assets|" "${WHITESUR_GS_DIR}/gnome-shell.css"
 
     if check_theme_file "${UBUNTU_CSS_FILE}"; then
@@ -620,25 +675,40 @@ install_gdm_theme() {
       TARGET="${ZORIN_CSS_FILE}"
     fi
 
-    backup_file "${COMMON_CSS_FILE}"; backup_file "${TARGET}"
+    backup_file "${COMMON_CSS_FILE}"
     ln -sf "${WHITESUR_GS_DIR}/gnome-shell.css" "${COMMON_CSS_FILE}"
-    ln -sf "${WHITESUR_GS_DIR}/gnome-shell.css" "${TARGET}"
+
+    if [[ "${TARGET}" != '' ]]; then
+      backup_file "${TARGET}"
+      ln -sf "${WHITESUR_GS_DIR}/gnome-shell.css" "${TARGET}"
+    fi
 
     # Fix previously installed WhiteSur
     restore_file "${ETC_CSS_FILE}"
   else # GR-based theme
-    install_shelly "${colors[0]}" "${opacities[0]}" "${alts[0]}" "${themes[0]}" "${schemes[0]}" "${icon}" "${WHITESUR_TMP_DIR}/shelly"
+    install_shelly "${colors[1]}" "${opacities[0]}" "${alts[0]}" "${themes[0]}" "${schemes[0]}" "${icon}" "${WHITESUR_TMP_DIR}/shelly"
     sed $SED_OPT "s|assets|resource:///org/gnome/shell/theme/assets|" "${WHITESUR_TMP_DIR}/shelly/gnome-shell.css"
 
     if check_theme_file "$POP_OS_GR_FILE"; then
       TARGET="${POP_OS_GR_FILE}"
     elif check_theme_file "$YARU_GR_FILE"; then
       TARGET="${YARU_GR_FILE}"
-    elif check_theme_file "$ZORIN_GR_FILE"; then
-      TARGET="${ZORIN_GR_FILE}"
+    elif check_theme_file "$ZORIN_GR_DARK_FILE"; then
+      TARGET="${ZORIN_GR_DARK_FILE}"
+    elif check_theme_file "$ZORIN_GR_LIGHT_FILE"; then
+      TARGET="${ZORIN_GR_LIGHT_FILE}"
     elif check_theme_file "$MISC_GR_FILE"; then
       TARGET="${MISC_GR_FILE}"
     fi
+
+    # For Kali Linux GDM >>>
+    local KALI_BACKGROUND_FOLDER="/usr/share/desktop-base/kali-theme/login"
+
+    if [[ -f "${KALI_BACKGROUND_FOLDER}/background-blurred" ]]; then
+      backup_file "${KALI_BACKGROUND_FOLDER}/background-blurred"
+      cp -rf "${WHITESUR_TMP_DIR}/beggy.png" "${KALI_BACKGROUND_FOLDER}/background-blurred"
+    fi
+    # For Kali Linux GDM <<<
 
     backup_file "${TARGET}"
     glib-compile-resources --sourcedir="${WHITESUR_TMP_DIR}/shelly" --target="${TARGET}" "${GS_GR_XML_FILE}"
@@ -646,6 +716,42 @@ install_gdm_theme() {
     # Fix previously installed WhiteSur
     restore_file "${ETC_GR_FILE}"
   fi
+}
+
+install_only_gdm_theme() {
+  if check_theme_file "$POP_OS_GR_FILE"; then
+    TARGET="${POP_OS_GR_FILE}"
+  elif check_theme_file "$YARU_GR_FILE"; then
+    TARGET="${YARU_GR_FILE}"
+  elif check_theme_file "$ZORIN_GR_DARK_FILE"; then
+    TARGET="${ZORIN_GR_DARK_FILE}"
+  elif check_theme_file "$ZORIN_GR_LIGHT_FILE"; then
+    TARGET="${ZORIN_GR_LIGHT_FILE}"
+  elif check_theme_file "$MISC_GR_FILE"; then
+    TARGET="${MISC_GR_FILE}"
+  else
+    prompt -e "\n  GDM Theme File not found! exit..."; exit 1
+  fi
+
+  local GDM_TMP_DIR="${WHITESUR_TMP_DIR}/gdm"
+
+  install_theme_deps; install_beggy "${GDM_TMP_DIR}"
+
+  mkdir -p                                                                                    "${GDM_TMP_DIR}"
+  cp -r "${REPO_DIR}/other/gdm/theme"                                                         "${GDM_TMP_DIR}"
+  cp -r "${WHITESUR_TMP_DIR}/beggy.png"                                                       "${GDM_TMP_DIR}/theme/background.png"
+
+  # For Kali Linux GDM >>>
+  local KALI_BACKGROUND_FOLDER="/usr/share/desktop-base/kali-theme/login"
+
+  if [[ -f "${KALI_BACKGROUND_FOLDER}/background-blurred" ]]; then
+    backup_file "${KALI_BACKGROUND_FOLDER}/background-blurred"
+    cp -rf "${WHITESUR_TMP_DIR}/beggy.png"                                                    "${KALI_BACKGROUND_FOLDER}/background-blurred"
+  fi
+  # For Kali Linux GDM <<<
+
+  backup_file "${TARGET}"
+  glib-compile-resources --sourcedir="${GDM_TMP_DIR}/theme" --target="${TARGET}" "${GDM_GR_XML_FILE}"
 }
 
 revert_gdm_theme() {
@@ -670,29 +776,37 @@ install_firefox_theme() {
     local TARGET_DIR="${FIREFOX_THEME_DIR}"
   fi
 
-  local theme_type="${darker}${adaptive}${colorscheme}"
+  if [[ "${colorscheme}" == '-nord' && "${adaptive}" == '-adaptive' ]]; then
+    local theme_type="${adaptive}"
+  else
+    local theme_type="${darker}${adaptive}${colorscheme}"
+  fi
 
   remove_firefox_theme
-
-  udo mkdir -p                                                                                "${TARGET_DIR}"
-  udo cp -rf "${FIREFOX_SRC_DIR}"/customChrome.css                                            "${TARGET_DIR}"
 
   mkdir -p                                                                                    "${TARGET_DIR}"
   cp -rf "${FIREFOX_SRC_DIR}/${theme_name}"                                                   "${TARGET_DIR}"
   [[ -f "${TARGET_DIR}"/customChrome.css ]] && mv "${TARGET_DIR}"/customChrome.css            "${TARGET_DIR}"/customChrome.css.bak
   cp -rf "${FIREFOX_SRC_DIR}"/customChrome.css                                                "${TARGET_DIR}"
   cp -rf "${FIREFOX_SRC_DIR}"/common/{icons,pages}                                            "${TARGET_DIR}/${theme_name}"
+
   if [[ "${colorscheme}" == '-nord' ]]; then
     cp -rf "${FIREFOX_SRC_DIR}"/common/titlebuttons-nord                                      "${TARGET_DIR}/${theme_name}"/titlebuttons
   else
     cp -rf "${FIREFOX_SRC_DIR}"/common/titlebuttons                                           "${TARGET_DIR}/${theme_name}"
   fi
+
   cp -rf "${FIREFOX_SRC_DIR}"/common/*.css                                                    "${TARGET_DIR}/${theme_name}"
   cp -rf "${FIREFOX_SRC_DIR}"/common/parts/*.css                                              "${TARGET_DIR}/${theme_name}"/parts
   [[ -f "${TARGET_DIR}"/userChrome.css ]] && mv "${TARGET_DIR}"/userChrome.css                "${TARGET_DIR}"/userChrome.css.bak
   cp -rf "${FIREFOX_SRC_DIR}"/userChrome-"${theme_name}${theme_type}".css                     "${TARGET_DIR}"/userChrome.css
   [[ -f "${TARGET_DIR}"/userContent.css ]] && mv "${TARGET_DIR}"/userContent.css              "${TARGET_DIR}"/userContent.css.bak
   cp -rf "${FIREFOX_SRC_DIR}"/userContent-"${theme_name}${theme_type}".css                    "${TARGET_DIR}"/userContent.css
+
+  if [[  "${theme_name}" == 'Monterey' ]]; then
+    sed -i "s/left_header_button_3/left_header_button_${left_button}/g"                       "${TARGET_DIR}"/userChrome.css
+    sed -i "s/right_header_button_3/right_header_button_${right_button}/g"                    "${TARGET_DIR}"/userChrome.css
+  fi
 
   if [[ "${firefoxtheme}" == 'Flat' && "${theme_name}" == 'Monterey' ]]; then
     cp -rf "${FIREFOX_SRC_DIR}"/userChrome-Monterey-alt"${theme_type}".css                    "${TARGET_DIR}"/userChrome.css
@@ -705,6 +819,82 @@ install_firefox_theme() {
   fi
 
   config_firefox
+}
+
+link_firefox_theme() {
+  if has_snap_app firefox; then
+    local TARGET_DIR="${FIREFOX_SNAP_THEME_DIR}"
+  elif has_flatpak_app org.mozilla.firefox; then
+    local TARGET_DIR="${FIREFOX_FLATPAK_THEME_DIR}"
+  else
+    local TARGET_DIR="${FIREFOX_THEME_DIR}"
+  fi
+
+  if [[ "${colorscheme}" == '-nord' && "${adaptive}" == '-adaptive' ]]; then
+    local theme_type="${adaptive}"
+  else
+    local theme_type="${darker}${adaptive}${colorscheme}"
+  fi
+
+  remove_firefox_theme
+
+  mkdir -p                                                                                    "${TARGET_DIR}/${theme_name}"
+
+  ln -sf "${FIREFOX_SRC_DIR}/${theme_name}"/colors                                            "${TARGET_DIR}/${theme_name}"/colors
+
+  (
+  cd "${FIREFOX_SRC_DIR}/${theme_name}"
+  for file_name in `ls *.css`; do
+    ln -sf "${FIREFOX_SRC_DIR}/${theme_name}/${file_name}"                                    "${TARGET_DIR}/${theme_name}/${file_name}"
+  done
+  )
+
+  ln -sf "${FIREFOX_SRC_DIR}"/common/icons                                                    "${TARGET_DIR}/${theme_name}"/icons
+  ln -sf "${FIREFOX_SRC_DIR}"/common/pages                                                    "${TARGET_DIR}/${theme_name}"/pages
+
+  if [[ "${colorscheme}" == '-nord' ]]; then
+    ln -sf "${FIREFOX_SRC_DIR}"/common/titlebuttons-nord                                      "${TARGET_DIR}/${theme_name}"/titlebuttons
+  else
+    ln -sf "${FIREFOX_SRC_DIR}"/common/titlebuttons                                           "${TARGET_DIR}/${theme_name}"/titlebuttons
+  fi
+
+  (
+  cd "${FIREFOX_SRC_DIR}"/common
+  for file_name in `ls *.css`; do
+    ln -sf "${FIREFOX_SRC_DIR}"/common/"${file_name}"                                         "${TARGET_DIR}/${theme_name}/${file_name}"
+  done
+  )
+
+  mkdir -p                                                                                    "${TARGET_DIR}/${theme_name}"/parts
+
+  (
+  cd "${FIREFOX_SRC_DIR}/${theme_name}"/parts
+  for file_name in `ls *.css`; do
+    ln -sf "${FIREFOX_SRC_DIR}/${theme_name}/parts/${file_name}"                              "${TARGET_DIR}/${theme_name}/parts/${file_name}"
+  done
+  )
+
+  (
+  cd "${FIREFOX_SRC_DIR}"/common/parts
+  for file_name in `ls *.css`; do
+    ln -sf "${FIREFOX_SRC_DIR}"/common/parts/"${file_name}"                                   "${TARGET_DIR}/${theme_name}/parts/${file_name}"
+  done
+  )
+
+  [[ -f "${TARGET_DIR}"/userChrome.css ]] && mv "${TARGET_DIR}"/userChrome.css                "${TARGET_DIR}"/userChrome.css.bak
+  cp -rf "${FIREFOX_SRC_DIR}"/userChrome-"${theme_name}${theme_type}".css                     "${TARGET_DIR}"/userChrome.css
+  [[ -f "${TARGET_DIR}"/userContent.css ]] && mv "${TARGET_DIR}"/userContent.css              "${TARGET_DIR}"/userContent.css.bak
+  cp -rf "${FIREFOX_SRC_DIR}"/userContent-"${theme_name}${theme_type}".css                    "${TARGET_DIR}"/userContent.css
+
+  if [[  "${theme_name}" == 'Monterey' ]]; then
+    sed -i "s/left_header_button_3/left_header_button_${left_button}/g"                       "${TARGET_DIR}"/userChrome.css
+    sed -i "s/right_header_button_3/right_header_button_${right_button}/g"                    "${TARGET_DIR}"/userChrome.css
+  fi
+
+  if [[ "${firefoxtheme}" == 'Flat' && "${theme_name}" == 'Monterey' ]]; then
+    cp -rf "${FIREFOX_SRC_DIR}"/userChrome-Monterey-alt"${theme_type}".css                    "${TARGET_DIR}"/userChrome.css
+    ln -sf "${FIREFOX_SRC_DIR}"/WhiteSur/parts/headerbar-urlbar.css                           "${TARGET_DIR}"/Monterey/parts/headerbar-urlbar-alt.css
+  fi
 }
 
 config_firefox() {
@@ -767,7 +957,7 @@ remove_firefox_theme() {
   [[ -f "${TARGET_DIR}"/userChrome.css && ! -f "${TARGET_DIR}"/userChrome.css.bak ]] && cp -r "${TARGET_DIR}"/userChrome.css "${TARGET_DIR}"/userChrome.css.bak
   [[ -f "${TARGET_DIR}"/userContent.css && ! -f "${TARGET_DIR}"/userContent.css.bak ]] && cp -r "${TARGET_DIR}"/userContent.css "${TARGET_DIR}"/userContent.css.bak
 
-  rm -rf "${TARGET_DIR}/${THEME_NAME}"
+  rm -rf "${TARGET_DIR}/${theme_name}"
   rm -rf "${TARGET_DIR}"/customChrome.css
   rm -rf "${TARGET_DIR}"/userChrome.css
   rm -rf "${TARGET_DIR}"/userContent.css
@@ -880,6 +1070,11 @@ disconnect_flatpak() {
 #                               GTK BASE                                #
 #########################################################################
 
+reset_gtk_base() {
+  libadwaita='false'
+  accent_type='fixed'
+}
+
 gtk_base() {
   cp -rf "${THEME_SRC_DIR}/sass/_gtk-base"{".scss","-temp.scss"}
 
@@ -898,7 +1093,12 @@ gtk_base() {
 
   if [[ "${scheme}" == 'nord' ]]; then
     sed $SED_OPT "/\$scheme/s/standard/nord/"                                   "${THEME_SRC_DIR}/sass/_gtk-base-temp.scss"
+    accent_type="fixed"
   fi
+}
+
+libadwaita_base() {
+  gtk_base
 
   if [[ "${GNOME_VERSION}" -ge '47-0' && "${libadwaita}" == 'true' ]]; then
     sed $SED_OPT "/\$gnome_version/s/old/new/"                                  "${THEME_SRC_DIR}/sass/_gtk-base-temp.scss"
@@ -912,6 +1112,7 @@ gtk_base() {
 shell_base() {
   cp -rf "${THEME_SRC_DIR}/main/gnome-shell/_shell-base"{".scss","-temp.scss"}
 
+  sed $SED_OPT "/\GNOME_SHELL/s/46/$SHELL_VERSION/"                             "${THEME_SRC_DIR}/main/gnome-shell/_shell-base-temp.scss"
   sed $SED_OPT "/\widgets/s/46-0/$GNOME_VERSION/"                               "${THEME_SRC_DIR}/main/gnome-shell/_shell-base-temp.scss"
 
   if [[ "${GNOME_VERSION}" == '3-28' ]]; then
@@ -927,6 +1128,10 @@ shell_base() {
 
 customize_theme() {
   cp -rf "${THEME_SRC_DIR}/sass/_theme-options"{".scss","-temp.scss"}
+
+  if [[ "${GNOME_VERSION}" -ge '47-0' && "${accent_type}" != 'fixed' && "${scheme}" != 'nord' ]]; then
+    sed $SED_OPT "/\$shell_version/s/old/new/"                                  "${THEME_SRC_DIR}/sass/_theme-options-temp.scss"
+  fi
 
   # Darker dark colors
   if [[ "${darker}" == 'true' ]]; then

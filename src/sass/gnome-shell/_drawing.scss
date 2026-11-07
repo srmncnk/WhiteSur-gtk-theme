@@ -102,6 +102,7 @@
   }
 }
 
+$entry_shell_bg: if($variant == 'light', rgba(black, 0.1), rgba(white, 0.1));
 
 @mixin entry($t, $fc: $primary_color, $tc: $fg_color, $c: $entry_shell_bg) {
 //
@@ -115,7 +116,7 @@
     background-color: $c;
     border-radius: $circular_radius;
     border: 2px solid transparent !important;
-    box-shadow: inset 0 0 0 1px rgba($borders_color, 0) !important;
+    box-shadow: inset 0 0 0 1px transparent !important;
     outline: none;
   }
 
@@ -125,8 +126,8 @@
   }
 
   @if $t == focus {
-    box-shadow: inset 0 0 0 1px rgba($borders_color, 0) !important;
-    @if $gnome_version == 'old' {
+    box-shadow: inset 0 0 0 1px transparent !important;
+    @if $shell_version == 'old' {
       border: 2px solid lighten($fc, 15%) !important;
     } @else {
       border: 2px solid st-lighten($fc, 15%) !important;
@@ -199,6 +200,9 @@
   }
 }
 
+$button_shell: if($variant == 'light', $bg_color, $base_color);
+$button_shell_bg: if($variant == 'light', mix(black, $button_shell, 6%), mix(white, $button_shell, 6%));
+
 @mixin button($t, $c: $button_shell_bg, $tc: $fg_color) {
 //
 // button
@@ -229,7 +233,7 @@
     border: none;
     text-shadow: none;
     icon-shadow: none;
-    @if $gnome_version == 'old' {
+    @if $shell_version == 'old' {
       background-color: mix($tc, $c, 6%);
     } @else {
       background-color: st-mix($tc, $c, 6%);
@@ -241,7 +245,7 @@
     border: none;
     text-shadow: none;
     icon-shadow: none;
-    @if $gnome_version == 'old' {
+    @if $shell_version == 'old' {
       background-color: mix($tc, $c, 12%);
     } @else {
       background-color: st-mix($tc, $c, 12%);

@@ -13,11 +13,11 @@ if [ ! "$(which sassc 2> /dev/null)" ]; then
   if has_command zypper; then
     sudo zypper in sassc
   elif has_command apt; then
-    sudo apt install sassc
+    sudo apt install -y sassc
   elif has_command dnf; then
     sudo dnf install -y sassc
   elif has_command yum; then
-    sudo yum install sassc
+    sudo yum install -y sassc
   elif has_command pacman; then
     sudo pacman -S --noconfirm sassc
   fi
@@ -30,6 +30,9 @@ _COLOR_VARIANTS=('-Light' '-Dark')
 if [ ! -z "${COLOR_VARIANTS:-}" ]; then
   IFS=', ' read -r -a _COLOR_VARIANTS <<< "${COLOR_VARIANTS:-}"
 fi
+
+cp -rf "src/sass/_gtk-base"{".scss","-temp.scss"}
+cp -rf "src/sass/_theme-options"{".scss","-temp.scss"}
 
 for color in "${_COLOR_VARIANTS[@]}"; do
   sassc $SASSC_OPT src/main/gtk-3.0/gtk${color}.{scss,css}

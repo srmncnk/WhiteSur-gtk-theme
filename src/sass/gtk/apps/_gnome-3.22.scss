@@ -2,6 +2,7 @@
 //
 // Nautilus
 //
+
 $nautilus_radius: $wm_radius + 1px;
 $nautilus_sidebar_size: $sidebar_size;
 $nautilus_borders_color: if($variant=='light', darken(rgba($dark_sidebar_bg, 1), 12%), $header_border);
@@ -19,8 +20,8 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
 @if $nautilus_style == 'stable' {
   $nautilus_sidebar_image: linear-gradient(90deg, $dark_sidebar_bg 0%,
                                                   $dark_sidebar_bg $nautilus_sidebar_size,
-                                                  rgba($dark_sidebar_bg, 0) $nautilus_sidebar_size,
-                                                  rgba($dark_sidebar_bg, 0) 100%);
+                                                  transparent $nautilus_sidebar_size,
+                                                  transparent 100%);
 
   $nautilus_bg_image: linear-gradient(90deg, $dark_sidebar_bg 0%,
                                              $dark_sidebar_bg $nautilus_sidebar_size,
@@ -37,15 +38,15 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
   $dialog_header_borders_image: linear-gradient(90deg, $dialog_bg_color 0px,
                                                        $header_border 25%);
 
-  $nautilus_actionbar_image: linear-gradient(90deg, rgba($dark_header_bg, 0) 5%,
-                                                    transparentize($dark_header_bg, 0.2) 40%);
+  $nautilus_actionbar_image: linear-gradient(90deg, transparent 5%,
+                                                    $dark_header_bg 40%);
 
-  $nautilus_actionbar_borders_image: linear-gradient(90deg, rgba($header_border, 0) 0px,
+  $nautilus_actionbar_borders_image: linear-gradient(90deg, transparent 0px,
                                                             $header_border 25%);
 }
 
 @if $nautilus_style == 'normal' or $nautilus_style == 'stable' {
-  $nautilus_header_borders_image: linear-gradient(90deg, rgba($header_border, 0) $nautilus_sidebar_size,
+  $nautilus_header_borders_image: linear-gradient(90deg, transparent $nautilus_sidebar_size,
                                                          $header_border $nautilus_sidebar_size);
 }
 
@@ -58,7 +59,7 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
   $nautilus_header_image: linear-gradient(90deg, $dark_sidebar_bg ($nautilus_sidebar_size / 2),
                                                  $dark_header_bg 40%);
 
-  $nautilus_header_borders_image: linear-gradient(90deg, rgba($header_border, 0) (($nautilus_sidebar_size / 2) - 40px),
+  $nautilus_header_borders_image: linear-gradient(90deg, transparent (($nautilus_sidebar_size / 2) - 40px),
                                                          $header_border 40%);
 }
 
@@ -75,12 +76,12 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
       border-radius: $wm_radius;
 
       @if $nautilus_style == 'glassy' {
-        background-image: image(rgba($dark_sidebar_bg, 0));
+        background-image: none;
       }
 
       > deck > box.vertical > headerbar.titlebar {
         @if $nautilus_style == 'normal' or $nautilus_style == 'stable' {
-          background-image: linear-gradient(90deg, rgba($dark_header_bg, 0) $nautilus_sidebar_size,
+          background-image: linear-gradient(90deg, transparent $nautilus_sidebar_size,
                                                    $nautilus_borders_color $nautilus_sidebar_size,
                                                    $nautilus_borders_color ($nautilus_sidebar_size + 1px),
                                                    $dark_header_bg ($nautilus_sidebar_size + 1px));
@@ -207,19 +208,19 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
           padding: 2px 4px;
 
           &:hover {
-            background-color: rgba($fg_color, 0.1);
+            background-color: gtkalpha($fg_color, 0.1);
           }
 
           &:active, &:active:hover {
             transition: background-color ease-out 200ms;
-            background-color: rgba($fg_color, 0.2);
+            background-color: gtkalpha($fg_color, 0.2);
           }
 
           &:selected.has-open-popup,
           &:selected, &:selected:hover {
             color: $fg_color;
             transition: background-color ease-out 200ms;
-            background-color: rgba($fg_color, 0.15);
+            background-color: $sidebar_theme_color;
 
             &, label { color: $fg_color; }
           }
@@ -240,14 +241,14 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
         &:drop(active):not(:disabled) {
           border: none;
           border-radius: 0;
-          background-color: rgba($dark_sidebar_fg, 0.15);
+          background-color: gtkalpha($dark_sidebar_fg, 0.15);
 
           &, label, .sidebar-icon { color: $dark_sidebar_fg; }
 
           &:selected.has-open-popup,
           &:selected, &:selected:hover {
             background-image: none;
-            background-color: rgba($selected_bg_color, 0.15);
+            background-color: gtkalpha($selected_bg_color, 0.15);
             &, label, .sidebar-icon { color: $selected_bg_color; }
           }
         }
@@ -375,16 +376,16 @@ $nautilus_sidebar_image: image($dark_sidebar_bg);
 
       button {
         color: $selection_mode_bg;
-        background-color: rgba($selection_mode_bg, 0.15);
+        background-color: gtkalpha($selection_mode_bg, 0.15);
         border: none;
 
-        &:hover { background-color: rgba($selection_mode_bg, 0.25); }
+        &:hover { background-color: gtkalpha($selection_mode_bg, 0.25); }
         &:active, &:checked { background-color: $selection_mode_bg; color: white; }
         &:disabled {
-          background-color: rgba($selection_mode_bg, 0.05);
-          color: rgba($selection_mode_bg, 0.35);
+          background-color: gtkalpha($selection_mode_bg, 0.05);
+          color: gtkalpha($selection_mode_bg, 0.35);
 
-          label { color: rgba($selection_mode_bg, 0.35); }
+          label { color: gtkalpha($selection_mode_bg, 0.35); }
         }
       }
 
@@ -1082,7 +1083,7 @@ window.org-gnome-Builder.workspace {
 
         &:active, &:checked {
           color: $fg_color;
-          background-color: rgba($fg_color, 0.25);
+          background-color: gtkalpha($fg_color, 0.25);
         }
 
         > box.horizontal > box.horizontal {
@@ -1199,9 +1200,9 @@ widget {
       margin: -1px; // kill ugly borders
 
       row.activatable {
-        color: rgba($fg_color, 0.75);
+        color: gtkalpha($fg_color, 0.75);
         &:hover,
-        &:active { color: rgba($fg_color, 0.75); }
+        &:active { color: gtkalpha($fg_color, 0.75); }
       }
 
       // kill ugly separators
@@ -1225,7 +1226,7 @@ widget {
 }
 
 graph-switcher-button.toggle {
-  color: rgba($fg_color, 0.75);
+  color: gtkalpha($fg_color, 0.75);
   font-weight: 500;
   &:hover { // use opaque
     color: $fg_color;
@@ -1248,7 +1249,7 @@ box.speedometer {
   &-outter { opacity: 0.8; } // reduce alpha for our troughs
 
   &-content-area { // cover up meter troughs with selection colour
-    box-shadow: 0 0 0 4px rgba($selected_bg_color, 0.2);
+    box-shadow: 0 0 0 4px gtkalpha($selected_bg_color, 0.2);
   }
 }
 
@@ -1779,7 +1780,7 @@ window.background.csd {
     }
 
     > overlay > scrolledwindow > viewport.frame {
-      background-color: rgba($base_color, 1);
+      background-color: gtkalpha($base_color, 1);
       border-bottom-right-radius: $wm_radius;
 
       > hdycolumn > stack > box.horizontal > box.vertical > box.horizontal {
@@ -1835,7 +1836,7 @@ headerbar.titlebar.incognito-mode {
 
 // reset inverted foreground colour
 notebook > box > stack > box.vertical > paned.vertical > overlay {
-  > .floating-bar { color: rgba($fg_color, 0.75); }
+  > .floating-bar { color: gtkalpha($fg_color, 0.75); }
 }
 
 // overrides foregrounds for 3.24's ssd-mode
@@ -1872,11 +1873,11 @@ popover.background:not(.emoji-picker) > box.vertical > scrolledwindow {
 
     > row.activatable {
       background-color: if($variant=='light', $bg_color, lighten($bg_color, 10%));
-      color: rgba($fg_color, 0.85);
+      color: gtkalpha($fg_color, 0.85);
       border-radius: $bt_radius;
       border: 1px solid $borders_color;
       margin: 2px;
-      @if $variant=='light' { box-shadow: $shadow_3, inset 0 0 0 1px rgba($borders_color, 0.01); }
+      @if $variant=='light' { box-shadow: $shadow_3, inset 0 0 0 1px gtkalpha(currentColor, 0.01); }
 
       &:hover { @include button(hover); }
       &:active, &:checked { @include button(flat-active); }
@@ -1890,14 +1891,14 @@ popover.background:not(.emoji-picker) > box.vertical > stack > box.vertical {
     border: 1px solid $borders_color;
 
     > list.background > row.activatable.bookmarks-row {
-      background-color: rgba($base_color, 0.35);
-      color: rgba($fg_color, 0.85);
-      border-bottom: 1px dashed rgba($borders_color, 0.05);
+      background-color: gtkalpha($base_color, 0.35);
+      color: gtkalpha($fg_color, 0.85);
+      border-bottom: 1px dashed gtkalpha(currentColor, 0.05);
       padding: 6px;
 
       &:hover,
       &:active,
-      &:checked { color: $fg_color; background-color: rgba($fg_color, 0.05); }
+      &:checked { color: $fg_color; background-color: gtkalpha($fg_color, 0.05); }
 
       button.flat {
         min-width: 16px;
@@ -1991,12 +1992,12 @@ tabbox {
 
       &:hover {
         color: $fg_color;
-        background-color: rgba($borders_color, 0.1);
+        background-color: gtkalpha(currentColor, 0.1);
       }
 
       &:active, &:active:hover {
         color: if($variant == 'light', darken($fg_color, 10%), lighten($fg_color, 10%));
-        background-color: rgba($borders_color, 0.2);
+        background-color: gtkalpha(currentColor, 0.2);
       }
 
       &.tab-close-button {
@@ -2129,13 +2130,13 @@ stack.view.polari-entry-area {
 
   button.popup.flat.toggle.polari-nick-button {
     &:hover {
-      background-color: rgba($fg_color, 0.15);
+      background-color: gtkalpha($fg_color, 0.15);
       box-shadow: none;
       background-image: none;
     }
 
     &:active, &:checked {
-      background-color: rgba($fg_color, 0.25);
+      background-color: gtkalpha($fg_color, 0.25);
       box-shadow: none;
       background-image: none;
     }
@@ -2160,7 +2161,7 @@ stack:disabled.view.polari-entry-area { background-image: image($bg_color); }
   &, &.solid {
     color: lighten($osd_fg_color, 7%);
     background-color: $osd_bg_color;
-    border: 1px solid darken($osd_bg_color, 8%);
+    border: 1px solid darken($solid_osd_bg_color, 8%);
     border-radius: 2px;
   }
 
@@ -2171,7 +2172,7 @@ stack:disabled.view.polari-entry-area { background-image: image($bg_color); }
         border-color: $selected_bg_color;
       }
 
-      &.empty { background-color: darken($osd_bg_color, 5%); }
+      &.empty { background-color: darken($solid_osd_bg_color, 5%); }
     }
 
     trough { background: none; }
@@ -2390,7 +2391,7 @@ window.background.csd {
     // border-radius: 0 0 $wm_radius $wm_radius;
   }
 
-  .content-view:hover { background-color: rgba($fg_color, 0.08); }
+  .content-view:hover { background-color: gtkalpha($fg_color, 0.08); }
 
   viewport.frame { // Documents
     background-color: transparent;
@@ -2608,12 +2609,12 @@ window#GearyMainWindow.background.csd { // <= 3.32
 
           &:hover {
             color: $fg_color;
-            background-color: rgba($fg_color, 0.1);
+            background-color: gtkalpha($fg_color, 0.1);
           }
 
           &:selected {
             color: $fg_color;
-            background-color: rgba($fg_color, 0.15);
+            background-color: gtkalpha($fg_color, 0.15);
           }
         }
       }
@@ -2629,14 +2630,14 @@ window#GearyMainWindow.background.csd { // <= 3.32
     statusbar {
       margin: -8px -12px;
       border: none;
-      background-color: rgba($dark_sidebar_bg, 1);
+      background-color: gtkalpha($dark_sidebar_bg, 1);
       border-bottom-left-radius: $wm_radius;
 
       frame > border { border: none; }
     }
 
     frame.geary-conversation-frame {
-      background-color: rgba($dark_sidebar_bg, 1);
+      background-color: gtkalpha($dark_sidebar_bg, 1);
 
       > border { border: none; }
 
@@ -2650,10 +2651,10 @@ window#GearyMainWindow.background.csd { // <= 3.32
         treeview.view {
           background-image: none;
 
-          &:hover { background-color: rgba($fg_color, 0.1); }
+          &:hover { background-color: gtkalpha($fg_color, 0.1); }
 
           &:selected {
-            background-color: rgba($fg_color, 0.15);
+            background-color: gtkalpha($fg_color, 0.15);
             color: if($variant == 'light', $fg_color, $selected_fg_color);
           }
 
@@ -2754,15 +2755,15 @@ window#GearyMainWindow.background.csd { // <= 3.32
 
         &:hover {
           color: $fg_color;
-          background-color: rgba($fg_color, 0.1);
+          background-color: gtkalpha($fg_color, 0.1);
         }
 
         &:selected {
           color: $fg_color;
-          background-color: rgba($fg_color, 0.15);
+          background-color: gtkalpha($fg_color, 0.15);
 
           &:hover {
-            background-color: rgba($fg_color, 0.12);
+            background-color: gtkalpha($fg_color, 0.12);
           }
         }
       }
@@ -2785,15 +2786,15 @@ window#GearyMainWindow.background.csd { // <= 3.32
 
         &:hover {
           color: $fg_color;
-          background-color: rgba($fg_color, 0.1);
+          background-color: gtkalpha($fg_color, 0.1);
         }
 
         &:selected {
           color: $fg_color;
-          background-color: rgba($fg_color, 0.15);
+          background-color: gtkalpha($fg_color, 0.15);
 
           &:hover {
-            background-color: rgba($fg_color, 0.12);
+            background-color: gtkalpha($fg_color, 0.12);
           }
         }
       }
@@ -2819,14 +2820,14 @@ window#GearyMainWindow.background.csd { // <= 3.32
         margin: 0 $container_padding / 2;
 
         &:hover {
-          background-color: rgba($fg_color, 0.1);
+          background-color: gtkalpha($fg_color, 0.1);
           border-color: transparent;
         }
 
         &:selected, &:active {
           border-color: transparent;
           border-radius: $mn_radius;
-          background-color: rgba($fg_color, 0.15);
+          background-color: gtkalpha($fg_color, 0.15);
           color: if($variant == 'light', $fg_color, $selected_fg_color);
         }
 
